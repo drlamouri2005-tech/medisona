@@ -1,0 +1,265 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "SF Pro", "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: "SF Pro", "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "SF Pro", "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Dynamically map theme colors to our central CSS properties */
+  --color-indigo-50: var(--color-bg);
+  --color-indigo-100: var(--color-surface);
+  --color-indigo-200: var(--color-border);
+  --color-indigo-300: var(--color-surface-hover);
+  --color-indigo-400: var(--color-accent);
+  --color-indigo-500: var(--color-accent);
+  --color-indigo-600: var(--color-accent);
+  --color-indigo-700: var(--color-text-muted);
+  --color-indigo-800: var(--color-border);
+  --color-indigo-900: var(--color-text);
+  --color-indigo-950: var(--color-text);
+
+  --color-slate-50: var(--color-bg);
+  --color-slate-100: var(--color-surface);
+  --color-slate-200: var(--color-border);
+  --color-slate-300: var(--color-text-muted);
+  --color-slate-400: var(--color-text-muted);
+  --color-slate-500: var(--color-text-muted);
+  --color-slate-600: var(--color-border);
+  --color-slate-700: var(--color-border);
+  --color-slate-800: var(--color-text);
+  --color-slate-900: var(--color-text);
+  --color-slate-950: var(--color-text);
+
+  --color-emerald-500: var(--color-accent);
+  --color-emerald-600: var(--color-accent);
+  --color-green-500: var(--color-accent);
+  --color-green-600: var(--color-accent);
+
+  --color-rose-500: #C58B74;
+  --color-rose-600: #D27D59;
+  --color-rose-700: #D27D59;
+}
+
+:root {
+  --color-bg: #070709;
+  --color-surface: #121215;
+  --color-surface-hover: #1A1A22;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-text: #FAF9F6;
+  --color-text-muted: #8C929D;
+  --color-accent: #10B981;
+  --color-accent-hover: #34D399;
+}
+
+body {
+  background-color: var(--color-bg) !important;
+  color: var(--color-text) !important;
+  font-family: var(--font-sans);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Hide scrollbars globally */
+::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Also for any container with custom scrolling */
+* {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* ==========================================
+   DYNAMIC CSS VARIABLE REDIRECTION FOR HARDCODED ELEMENTS
+   ========================================== */
+
+/* Background overrides for #FAF9F6 (Warm Sand) -> var(--color-bg) */
+.bg-\[\#FAF9F6\],
+.bg-\[\#FAF9F6\]\/10,
+.bg-\[\#FAF9F6\]\/20,
+.bg-\[\#FAF9F6\]\/30,
+.bg-\[\#FAF9F6\]\/40,
+.bg-\[\#FAF9F6\]\/50,
+.bg-\[\#FAF9F6\]\/60,
+.bg-\[\#FAF9F6\]\/80,
+.bg-\[\#FAF9F6\]\/85 {
+  background-color: var(--color-bg) !important;
+}
+
+/* Background overrides for #F2F0E9 (Warm Beige) -> var(--color-surface-hover) */
+.bg-\[\#F2F0E9\],
+.bg-\[\#F2F0E9\]\/10,
+.bg-\[\#F2F0E9\]\/30,
+.bg-\[\#F2F0E9\]\/50,
+.bg-\[\#F2F0E9\]\/60,
+.bg-\[\#F2F0E9\]\/80 {
+  background-color: var(--color-surface-hover) !important;
+}
+
+/* Border overrides for #E6E2D8 (Warm Border) -> var(--color-border) */
+.border-\[\#E6E2D8\],
+.border-\[\#E6E2D8\]\/30,
+.border-\[\#E6E2D8\]\/40,
+.border-\[\#E6E2D8\]\/50,
+.border-\[\#E6E2D8\]\/60 {
+  border-color: var(--color-border) !important;
+}
+
+/* Text color overrides for #423F3A (Warm Coal) -> var(--color-text) */
+.text-\[\#423F3A\] {
+  color: var(--color-text) !important;
+}
+
+/* Text color overrides for #7A756D (Warm Muted) -> var(--color-text-muted) */
+.text-\[\#7A756D\] {
+  color: var(--color-text-muted) !important;
+}
+
+/* Text color overrides for #5C5852 (Warm Secondary) -> var(--color-text) */
+.text-\[\#5C5852\] {
+  color: var(--color-text) !important;
+}
+
+/* Text color overrides for #9A9489 (Warm Sub-muted) -> var(--color-text-muted) */
+.text-\[\#9A9489\] {
+  color: var(--color-text-muted) !important;
+}
+
+/* Interactive & Hovers mapped to vars */
+.hover\:bg-\[\#FAF9F6\]:hover {
+  background-color: var(--color-surface-hover) !important;
+}
+.hover\:bg-\[\#FAF9F6\]\/40:hover {
+  background-color: var(--color-surface-hover) !important;
+}
+.hover\:bg-\[\#F2F0E9\]:hover {
+  background-color: var(--color-border) !important;
+}
+
+/* Overriding white cards with dynamic surface variable */
+.bg-white {
+  background-color: var(--color-surface) !important;
+}
+
+/* Accent overrides */
+.text-\[\#7D8C61\], .text-emerald-600, .text-green-600 {
+  color: var(--color-accent) !important;
+}
+.bg-\[\#7D8C61\], .bg-emerald-600, .bg-green-600 {
+  background-color: var(--color-accent) !important;
+}
+.border-\[\#7D8C61\], .border-emerald-600, .border-green-600 {
+  border-color: var(--color-accent) !important;
+}
+.bg-\[\#7D8C61\]\/10, .bg-emerald-500\/10 {
+  background-color: var(--color-accent) !important;
+  background-opacity: 0.1 !important;
+}
+.bg-\[\#7D8C61\]\/15 {
+  background-color: var(--color-accent) !important;
+  background-opacity: 0.15 !important;
+}
+
+/* Custom shadow adjustments for dynamic surface contrast */
+.shadow-sm {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+.shadow-md {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+}
+.shadow-xl {
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Elegant input and focus ring stylings for the theme */
+input:focus, textarea:focus, select:focus {
+  border-color: var(--color-accent) !important;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+/* Modern high-end CSS Transitions and Hover Effects */
+.premium-card-hover {
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), 
+              box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1), 
+              border-color 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform, box-shadow, border-color;
+}
+
+.premium-card-hover:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.15);
+  border-color: var(--color-accent) !important;
+}
+
+/* Subtle Rotation and Scale effect for medical icons */
+.medical-icon-rotate {
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+.premium-card-hover:hover .medical-icon-rotate,
+.medical-icon-rotate:hover {
+  transform: rotate(15deg) scale(1.15);
+}
+
+/* Specific Stethoscope back-and-forth swing effect */
+.stethoscope-rotate {
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+.premium-card-hover:hover .stethoscope-rotate,
+.stethoscope-rotate:hover {
+  transform: rotate(-18deg) scale(1.18);
+}
+
+/* Navigation button transitions */
+.nav-btn-transition {
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.nav-btn-transition:hover {
+  transform: translateX(3px);
+}
+
+/* ==========================================
+   DARK THEME VARIABLE ADAPTATION (Backward Compatibility)
+   ========================================== */
+.dark body {
+  background-color: var(--color-bg) !important;
+  color: var(--color-text) !important;
+}
+
+.dark .bg-white,
+.dark .bg-white\/95 {
+  background-color: var(--color-surface) !important;
+}
+
+.dark select option {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
+}
+
+/* Dynamic glow effects in Dark Mode */
+.dark .premium-card-hover:hover {
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.6), 
+              0 10px 20px -15px var(--color-accent);
+  border-color: var(--color-accent) !important;
+}
+
+@utility bg-mesh-glow {
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08), transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.03), transparent 40%);
+}
+
+@keyframes soft-pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.2)); }
+  50% { transform: scale(1.05); filter: drop-shadow(0 0 30px rgba(16, 185, 129, 0.5)); }
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 3s infinite ease-in-out;
+}

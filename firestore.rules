@@ -1,0 +1,118 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net (First block must be default-deny catch-all)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Safety Helpers
+    function isValidId(id) {
+      return id is string && id.size() <= 128;
+    }
+
+    function isValidStudent(data) {
+      return data.name is string && data.name.size() <= 100
+        && (!data.keys().hasAny(['academicYear']) || data.academicYear is string)
+        && (!data.keys().hasAny(['joinedAt']) || data.joinedAt is string)
+        && (!data.keys().hasAny(['email']) || data.email is string)
+        && (!data.keys().hasAny(['isAdmin']) || data.isAdmin is bool);
+    }
+
+    function isValidBugReport(data) {
+      return data.keys().hasAll(['studentId', 'studentName', 'questionId', 'questionText', 'details', 'createdAt', 'status'])
+        && data.keys().size() == 7
+        && data.studentId is string && data.studentId.size() <= 128
+        && data.studentName is string && data.studentName.size() <= 100
+        && data.questionId is string && data.questionId.size() <= 128
+        && data.questionText is string && data.questionText.size() <= 10000
+        && data.details is string && data.details.size() <= 10000
+        && data.createdAt is string && data.createdAt.size() <= 100
+        && data.status is string && data.status.size() <= 50;
+    }
+
+    function isValidQuestion(data) {
+      return data.keys().hasAll(['id', 'academicYear', 'module', 'course', 'text', 'choices', 'explanation', 'examYear', 'sessionType'])
+        && data.id is string && data.id.size() <= 128
+        && data.academicYear is string && data.academicYear.size() <= 50
+        && data.module is string && data.module.size() <= 200
+        && data.course is string && data.course.size() <= 200
+        && data.text is string && data.text.size() <= 10000
+        && data.choices is list && data.choices.size() >= 2 && data.choices.size() <= 10
+        && (!data.keys().hasAny(['correctAnswer']) || (data.correctAnswer is int && data.correctAnswer >= 0 && data.correctAnswer <= 10))
+        && (!data.keys().hasAny(['correctAnswers']) || (data.correctAnswers is list))
+        && data.explanation is string && data.explanation.size() <= 10000
+        && data.examYear is string && data.examYear.size() <= 30
+        && data.sessionType is string && data.sessionType.size() <= 50;
+    }
+
+    function isValidKnownCourse(data) {
+      return data.keys().hasAll(['id', 'academicYear', 'module', 'course', 'addedAt'])
+        && data.id is string && data.id.size() <= 128
+        && data.academicYear is string && data.academicYear.size() <= 50
+        && data.module is string && data.module.size() <= 200
+        && data.course is string && data.course.size() <= 200
+        && data.addedAt is string && data.addedAt.size() <= 100;
+    }
+
+    function isValidCommunityAdvice(data) {
+      return data.keys().hasAll(['id', 'authorName', 'authorYear', 'text', 'category', 'likesCount', 'likedBy', 'createdAt'])
+        && data.id is string && data.id.size() <= 128
+        && data.authorName is string && data.authorName.size() <= 100
+        && data.authorYear is string && data.authorYear.size() <= 50
+        && data.text is string && data.text.size() <= 2000
+        && data.category is string && data.category.size() <= 50
+        && data.likesCount is int
+        && data.likedBy is list
+        && data.createdAt is string && data.createdAt.size() <= 100;
+    }
+
+    function isValidAdminEmail(data) {
+      return data.keys().hasAll(['email', 'addedBy', 'addedAt'])
+        && data.keys().size() == 3
+        && data.email is string && data.email.size() <= 150
+        && data.addedBy is string && data.addedBy.size() <= 150
+        && data.addedAt is string && data.addedAt.size() <= 100;
+    }
+
+    // Students Collection Rule matches
+    match /students/{studentId} {
+      allow get: if request.auth != null && request.auth.uid == studentId && isValidId(studentId);
+      allow create: if request.auth != null && request.auth.uid == studentId && isValidId(studentId) && isValidStudent(request.resource.data);
+      allow update: if request.auth != null && request.auth.uid == studentId && isValidId(studentId) && isValidStudent(request.resource.data);
+    }
+
+    // Bug Reports Collection Rule matches
+    match /bugReports/{reportId} {
+      allow create: if isValidId(reportId) && isValidBugReport(request.resource.data);
+    }
+
+    // Questions Collection Rule matches
+    match /questions/{questionId} {
+      allow read: if true;
+      allow create, update: if isValidId(questionId) && isValidQuestion(request.resource.data);
+      allow delete: if isValidId(questionId);
+    }
+
+    // Known Courses Reference Collection Rule matches
+    match /knownCourses/{courseId} {
+      allow read: if true;
+      allow create, update: if isValidId(courseId) && isValidKnownCourse(request.resource.data);
+      allow delete: if isValidId(courseId);
+    }
+
+    // Community Advice Collection Rule matches
+    match /communityAdvices/{adviceId} {
+      allow read: if true;
+      allow create, update: if isValidId(adviceId) && isValidCommunityAdvice(request.resource.data);
+      allow delete: if isValidId(adviceId);
+    }
+
+    // Admin Emails Collection Rule matches
+    match /adminEmails/{emailId} {
+      allow read: if true;
+      allow create, update: if request.auth != null && isValidAdminEmail(request.resource.data);
+      allow delete: if request.auth != null;
+    }
+  }
+}

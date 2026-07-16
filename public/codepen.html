@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synaptic Portal • Clinical Academy</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Editorial Serif (Playfair Display) + Premium UI (Plus Jakarta Sans) + Sci-Fi Mono (Share Tech Mono) -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Share+Tech+Mono&display=swap');
+    
+    /* Config Tailwind fonts */
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Playfair Display"', 'serif'],
+            mono: ['"Share Tech Mono"', 'monospace'],
+          },
+          colors: {
+            sage: {
+              400: '#9cb07b',
+              500: '#7D8C61',
+              600: '#67754f',
+              700: '#525e3f',
+            },
+            obsidian: {
+              DEFAULT: '#0d0d11',
+              card: 'rgba(13, 13, 17, 0.45)',
+            }
+          }
+        }
+      }
+    }
+  </style>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- GSAP & ScrollTrigger CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  
+  <!-- Lenis Smooth Scrolling CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0d0d11;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(125, 140, 97, 0.3);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(125, 140, 97, 0.6);
+    }
+
+    /* Custom styles for high-fidelity glassmorphism & cursor */
+    body {
+      background-color: #0d0d11;
+      overflow-x: hidden;
+    }
+
+    .glass-material {
+      background: rgba(13, 13, 17, 0.45);
+      backdrop-filter: blur(40px) saturate(140%);
+      -webkit-backdrop-filter: blur(40px) saturate(140%);
+      border: 1px solid rgba(125, 140, 97, 0.25);
+    }
+
+    .glowing-shadow {
+      box-shadow: 0 0 40px rgba(125, 140, 97, 0.15);
+    }
+
+    /* Rotate-x utility for holographic display table */
+    .rotate-x-75 {
+      transform: rotateX(75deg);
+    }
+
+    /* Shimmer effect for buttons */
+    @keyframes shimmer {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+    .shimmer-trigger:hover .shimmer-layer {
+      animation: shimmer-anim 1.5s infinite;
+    }
+    @keyframes shimmer-anim {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* Hide standard cursor to show physical custom trail */
+    @media (pointer: fine) {
+      body, a, button, [role="button"] {
+        cursor: none !important;
+      }
+    }
+
+    /* Scene Container Pinning */
+    .viewport-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="text-[#FAF9F6] font-sans antialiased overflow-y-scroll h-[300vh] select-none">
+
+  <!-- 1. Custom Physical Cursor Follower (GSAP spring-coupled) -->
+  <div id="custom-cursor-outer" class="fixed w-10 h-10 rounded-full border border-sage-500/40 bg-transparent pointer-events-none z-50 mix-blend-normal -translate-x-1/2 -translate-y-1/2 scale-100 opacity-0 transition-opacity duration-300"></div>
+  <div id="custom-cursor-dot" class="fixed w-2.5 h-2.5 rounded-full bg-sage-500 pointer-events-none z-50 shadow-[0_0_8px_rgba(125,140,97,0.4)] -translate-x-1/2 -translate-y-1/2 scale-100 opacity-0 transition-opacity duration-300"></div>
+
+  <!-- 2. Ambient Mouse-Follower Background Glow -->
+  <div id="ambient-glow" class="fixed w-[450px] h-[450px] rounded-full bg-sage-500/8 filter blur-[120px] pointer-events-none z-0 -translate-x-1/2 -translate-y-1/2 mix-blend-screen"></div>
+
+  <!-- 3. Dynamic Dust Field Canvas -->
+  <canvas id="dust-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+  <!-- 4. Global Scientific Decor HUD overlays -->
+  <div class="fixed top-8 left-8 text-[9px] font-mono text-sage-500/40 tracking-widest z-10 select-none">
+    SYS.LOC_01 // SECURE_CONNS
+  </div>
+  <div class="fixed top-8 right-8 text-[9px] font-mono text-sage-500/40 tracking-widest z-10 text-right select-none">
+    TERM.ACTIVE // 2026_MASTER
+  </div>
+  <div class="fixed bottom-8 left-8 text-[9px] font-mono text-sage-500/40 tracking-widest z-10 select-none">
+    BIO_VER_PASS // SHA256_SEC
+  </div>
+  <div class="fixed bottom-8 right-8 text-[9px] font-mono text-sage-500/40 tracking-widest z-10 text-right select-none">
+    SYNAPSE_LINKED // READY
+  </div>
+
+  <!-- SCENE SYSTEM WRAPPER -->
+  <div class="viewport-container z-10">
+
+    <!-- ==================== SCENE 1: THE WELCOME SCREEN ==================== -->
+    <div id="scene-welcome" class="absolute inset-0 flex items-center justify-center p-4 sm:p-6">
+      
+      <!-- 3D Parallax Glass Panel -->
+      <div id="welcome-panel" class="relative max-w-lg w-full rounded-3xl glass-material p-8 sm:p-10 glowing-shadow flex flex-col items-center text-center overflow-hidden transform-gpu" style="perspective: 1000px;">
+        
+        <!-- Interactive internal auras -->
+        <div class="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-sage-500/10 filter blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-48 h-48 rounded-full bg-sage-500/8 filter blur-3xl pointer-events-none"></div>
+
+        <!-- 3D Holographic Base & Canvas -->
+        <div class="relative w-44 h-44 sm:w-48 sm:h-48 mb-4 flex items-center justify-center transform-gpu" style="transform: translateZ(40px);">
+          <!-- Holographic projector ring -->
+          <div class="absolute bottom-0 w-32 h-6 bg-sage-500/10 rounded-full border border-sage-500/30 filter blur-sm rotate-x-75 animate-pulse"></div>
+          <!-- 3D Anatomical Sphere Canvas -->
+          <canvas id="holo-canvas" class="w-full h-full relative z-10 filter drop-shadow-[0_0_15px_rgba(125,140,97,0.45)]"></canvas>
+        </div>
+
+        <!-- Heading Typography -->
+        <div class="space-y-3 relative z-10 transform-gpu" style="transform: translateZ(20px);">
+          <div class="flex items-center justify-center gap-1.5 font-mono text-[9px] tracking-[0.25em] text-sage-400 uppercase font-bold">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-sage-400"></i>
+            SYNAPTIC CORE ONLINE
+          </div>
+          
+          <h1 id="welcome-title" class="text-3xl sm:text-4xl font-serif font-bold text-[#FAF9F6] tracking-tight leading-none">
+            Welcome back, Doctor.
+          </h1>
+          
+          <p id="welcome-subtitle" class="text-xs sm:text-sm text-[#9A9489] font-medium opacity-0">
+            Active Curriculum Module: 
+            <span class="text-sage-400 font-semibold border-b border-sage-500/20 pb-0.5">
+              Clinical Physiology Mastery
+            </span>
+          </p>
+        </div>
+
+        <!-- Biometric Magnetic Authentication CTA -->
+        <div id="welcome-cta" class="mt-8 sm:mt-10 w-full relative z-10 flex flex-col items-center transform-gpu opacity-0" style="transform: translateZ(30px);">
+          
+          <!-- Magnetic Interaction Target -->
+          <button id="magnetic-auth-btn" class="shimmer-trigger group relative px-7 py-3.5 w-full bg-sage-500/10 hover:bg-sage-500/20 text-[#FAF9F6] border border-sage-500/40 rounded-2xl text-[10px] font-mono uppercase tracking-[0.2em] font-bold transition-all duration-300 flex items-center justify-center gap-3 overflow-hidden shadow-[0_4px_20px_rgba(125,140,97,0.1)] active:scale-95">
+            <!-- Shimmer laser sweep -->
+            <span class="shimmer-layer absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-sage-500/20 to-transparent -translate-x-full"></span>
+            <i data-lucide="fingerprint" class="w-4 h-4 text-sage-400 group-hover:scale-110 transition-transform duration-300"></i>
+            <span id="btn-text">Authenticate Biometrics</span>
+          </button>
+          
+          <!-- Dynamic Scanning Feedback Panel (hidden by default) -->
+          <div id="biometric-scanner-feedback" class="w-full bg-[#0d0d11]/90 border border-sage-500/35 rounded-2xl p-4 flex-col items-center gap-3 hidden opacity-0 mt-4">
+            <div class="flex items-center justify-between w-full text-[9px] font-mono text-sage-400 uppercase font-bold tracking-widest">
+              <div class="flex items-center gap-1.5">
+                <i data-lucide="activity" class="w-3.5 h-3.5 animate-pulse text-sage-400"></i>
+                Verifying Neural Signature...
+              </div>
+              <span id="scan-percentage">0%</span>
+            </div>
+            
+            <div class="w-full h-1 bg-[#1A1A1F] rounded-full overflow-hidden relative">
+              <div id="scan-progress-bar" class="h-full bg-gradient-to-r from-sage-500 to-[#FAF9F6] rounded-full shadow-[0_0_8px_#7D8C61]" style="width: 0%;"></div>
+              <div id="scan-laser" class="absolute top-0 bottom-0 w-2 bg-white blur-sm -translate-x-1/2" style="left: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Bypass shortcut -->
+          <button id="bypass-btn" class="mt-4 text-[9px] font-mono text-[#9A9489]/60 hover:text-sage-400 tracking-[0.15em] uppercase underline underline-offset-4 transition-colors duration-200">
+            Scroll or Bypass to Curriculums
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ==================== SCENE 2: FLOATING CURRICULUM ISLANDS ==================== -->
+    <div id="scene-islands" class="absolute inset-0 flex flex-col justify-center px-4 sm:px-12 lg:px-24 py-16 hidden opacity-0">
+      
+      <!-- Scene Header & Indicators -->
+      <div class="max-w-4xl w-full mx-auto mb-10 text-left space-y-2">
+        <div class="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-sage-400">
+          <i data-lucide="brain-circuit" class="w-4 h-4 text-sage-400"></i>
+          MEDICAL SPECIALTIES CURRICULUM
+        </div>
+        <h2 class="text-2.5xl sm:text-4xl font-serif font-bold text-[#FAF9F6] tracking-tight">
+          Anatomical & Physiological Divisions
+        </h2>
+        <p class="text-xs sm:text-sm text-[#9A9489] max-w-2xl font-sans">
+          Select an academic simulation division below to begin interactive medical diagnostics. Every curriculum features standard clinical vignettes, AI evaluations, and board-level proof.
+        </p>
+      </div>
+
+      <!-- Organic Floating Islands Assembly (3D depth layer layout) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl w-full mx-auto pb-8 relative z-10" style="perspective: 1200px;">
+        
+        <!-- Division Island Card 1: Anatomy -->
+        <div class="island-card cursor-pointer group relative rounded-2xl glass-material p-6 glowing-shadow transition-all duration-300 transform-gpu" style="transform: translateZ(-60px);">
+          <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-sage-500/0 via-sage-500/0 to-sage-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div class="p-3.5 rounded-xl bg-sage-500/10 border border-sage-500/20 text-sage-400 group-hover:bg-sage-500/20 group-hover:border-sage-500/40 transition-colors duration-300">
+              <i data-lucide="stethoscope" class="w-6 h-6"></i>
+            </div>
+            <span class="text-[9px] font-mono text-sage-400 bg-sage-500/10 border border-sage-500/25 px-2.5 py-1 rounded-full uppercase tracking-wider">
+              Anatomy & Kinesiology
+            </span>
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-lg font-serif font-bold text-[#FAF9F6] tracking-tight group-hover:text-sage-400 transition-colors duration-200">
+              Structural & Systemic Neuroanatomy
+            </h3>
+            <p class="text-[#9A9489] text-xs leading-relaxed">
+              Clinical study of cerebrospinal neural pathways, cortical subdivisions, peripheral tracts, and skeletal innervation.
+            </p>
+          </div>
+          <div class="mt-6 pt-5 border-t border-[#7D8C61]/15 flex items-center justify-between text-[10px] font-mono">
+            <span class="text-[#9A9489]">CURRICULUM LEVEL 01</span>
+            <span class="text-sage-400 font-bold flex items-center gap-1">
+              84% ACCREDITED <i data-lucide="check-circle" class="w-3 h-3"></i>
+            </span>
+          </div>
+        </div>
+
+        <!-- Division Island Card 2: Physiology (ACTIVE) -->
+        <div class="island-card cursor-pointer group relative rounded-2xl glass-material p-6 glowing-shadow transition-all duration-300 transform-gpu border-sage-400/50" style="transform: translateZ(40px);">
+          <!-- Ambient glowing backing -->
+          <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-sage-500/0 via-sage-500/0 to-sage-500/8 opacity-100 transition-opacity duration-300"></div>
+          <div class="absolute -inset-[1px] bg-gradient-to-r from-sage-500 to-transparent rounded-2xl opacity-30 group-hover:opacity-60 transition-opacity duration-300 pointer-events-none"></div>
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div class="p-3.5 rounded-xl bg-sage-500/20 border border-sage-400/40 text-sage-400">
+              <i data-lucide="activity" class="w-6 h-6 animate-pulse"></i>
+            </div>
+            <span class="text-[9px] font-mono text-white bg-sage-500/40 border border-sage-400 px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
+              Clinical Physiology
+            </span>
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-lg font-serif font-bold text-[#FAF9F6] tracking-tight text-sage-400">
+              Cardiovascular & Renal Hemodynamics
+            </h3>
+            <p class="text-[#9A9489] text-xs leading-relaxed">
+              Pathophysiology simulations of vascular resistance, renal nephron transport, cardiac cycles, and pH regulation.
+            </p>
+          </div>
+          <div class="mt-6 pt-5 border-t border-[#7D8C61]/35 flex items-center justify-between text-[10px] font-mono">
+            <span class="text-[#FAF9F6] font-bold flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 bg-sage-400 rounded-full animate-ping"></span> IN PROGRESS
+            </span>
+            <span class="text-sage-400 font-bold">12 / 16 MODULES ACTIVE</span>
+          </div>
+        </div>
+
+        <!-- Division Island Card 3: Histology -->
+        <div class="island-card cursor-pointer group relative rounded-2xl glass-material p-6 glowing-shadow transition-all duration-300 transform-gpu" style="transform: translateZ(-20px);">
+          <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-sage-500/0 via-sage-500/0 to-sage-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div class="p-3.5 rounded-xl bg-sage-500/10 border border-sage-500/20 text-sage-400 group-hover:bg-sage-500/20 group-hover:border-sage-500/40 transition-colors duration-300">
+              <i data-lucide="microscope" class="w-6 h-6"></i>
+            </div>
+            <span class="text-[9px] font-mono text-sage-400 bg-sage-500/10 border border-sage-500/25 px-2.5 py-1 rounded-full uppercase tracking-wider">
+              Pathological Histology
+            </span>
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-lg font-serif font-bold text-[#FAF9F6] tracking-tight group-hover:text-sage-400 transition-colors duration-200">
+              Microscopic Tissue & Oncology Profiles
+            </h3>
+            <p class="text-[#9A9489] text-xs leading-relaxed">
+              Cytological diagnostic training covering cellular adaptation, hyperplasia, dynamic malignant mutations, and biopsies.
+            </p>
+          </div>
+          <div class="mt-6 pt-5 border-t border-[#7D8C61]/15 flex items-center justify-between text-[10px] font-mono">
+            <span class="text-[#9A9489]">CURRICULUM LEVEL 03</span>
+            <span class="text-[#9A9489] font-medium">9 AUDIT PAPERS UNLOCKED</span>
+          </div>
+        </div>
+
+        <!-- Division Island Card 4: Embryology -->
+        <div class="island-card cursor-pointer group relative rounded-2xl glass-material p-6 glowing-shadow transition-all duration-300 transform-gpu" style="transform: translateZ(-80px);">
+          <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-sage-500/0 via-sage-500/0 to-sage-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div class="p-3.5 rounded-xl bg-sage-500/10 border border-sage-500/20 text-sage-400 group-hover:bg-sage-500/20 group-hover:border-sage-500/40 transition-colors duration-300">
+              <i data-lucide="dna-play" class="w-6 h-6"></i>
+            </div>
+            <span class="text-[9px] font-mono text-sage-400 bg-sage-500/10 border border-sage-500/25 px-2.5 py-1 rounded-full uppercase tracking-wider">
+              Human Embryology
+            </span>
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-lg font-serif font-bold text-[#FAF9F6] tracking-tight group-hover:text-sage-400 transition-colors duration-200">
+              Morphogenesis & Organogenesis Systems
+            </h3>
+            <p class="text-[#9A9489] text-xs leading-relaxed">
+              Developmental stages of embryonic organ systems, heart septation, brachial arches, and genetic clinical syndromes.
+            </p>
+          </div>
+          <div class="mt-6 pt-5 border-t border-[#7D8C61]/15 flex items-center justify-between text-[10px] font-mono">
+            <span class="text-[#9A9489]">CURRICULUM LEVEL 04</span>
+            <span class="text-sage-400 font-bold flex items-center gap-1">
+              SECURE LINK <i data-lucide="shield" class="w-3.5 h-3.5 text-sage-400"></i>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- INLINE CODE / LOGIC EXPLAINER IN LOWER SECTION FOR CONTEXT -->
+  <div class="absolute top-[310vh] left-0 right-0 max-w-4xl mx-auto px-6 pb-20 text-left text-[#FAF9F6]">
+    <div class="glass-material rounded-3xl p-8 space-y-4">
+      <h3 class="text-xl font-serif font-bold flex items-center gap-2">
+        <i data-lucide="terminal" class="text-sage-400"></i> Developer Technical Guide
+      </h3>
+      <p class="text-[#9A9489] text-sm leading-relaxed">
+        This high-end prototype utilizes native HTML5 canvas layers, mathematical rotations, and GSAP's physical springs for a flawless user experience. Perfect for immediate insertion into CodePen, JSFiddle, or CodeSandbox.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono text-sage-400">
+        <div class="bg-black/30 p-4 rounded-xl border border-sage-500/15">
+          <span class="text-[#FAF9F6] block mb-1">INTERACTION PHYSICS:</span>
+          - Inertial 3D Card Parallax Tilt<br>
+          - Magnetic Pull Buttons (GSAP dynamic target)<br>
+          - Sage Green Smooth Ambient Cursor Halo
+        </div>
+        <div class="bg-black/30 p-4 rounded-xl border border-sage-500/15">
+          <span class="text-[#FAF9F6] block mb-1">SCROLL ENGINE:</span>
+          - Lenis Smooth Scrolling integrated<br>
+          - GSAP ScrollTrigger timelines<br>
+          - Staggered Z-depth Card entrances
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== LOGIC & SCRIPT INTERACTION ENGINE ==================== -->
+  <script>
+    // Initialize Lucide Vector Icons
+    lucide.createIcons();
+
+    // ==========================================
+    // 1. DUST PARTICLES ENGINE (Canvas Layer)
+    // ==========================================
+    const dustCanvas = document.getElementById("dust-canvas");
+    const dustCtx = dustCanvas.getContext("2d");
+    
+    let width = (dustCanvas.width = window.innerWidth);
+    let height = (dustCanvas.height = window.innerHeight);
+
+    window.addEventListener("resize", () => {
+      width = dustCanvas.width = window.innerWidth;
+      height = dustCanvas.height = window.innerHeight;
+    });
+
+    class DustParticle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * 1.5 + 0.5;
+        this.vx = (Math.random() - 0.5) * 0.25;
+        this.vy = (Math.random() - 0.5) * 0.25;
+        this.color = Math.random() > 0.85 ? "rgba(140, 163, 101, 0.45)" : "rgba(250, 249, 246, 0.15)";
+      }
+
+      draw() {
+        dustCtx.beginPath();
+        dustCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        dustCtx.fillStyle = this.color;
+        dustCtx.fill();
+      }
+
+      update(mx, my) {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+        if (this.y < 0) this.y = height;
+        if (this.y > height) this.y = 0;
+
+        // Displace based on cursor coordinates
+        const dx = mx - this.x;
+        const dy = my - this.y;
+        const dist = Math.hypot(dx, dy);
+        const forceDist = 80;
+
+        if (dist < forceDist) {
+          const force = (forceDist - dist) / forceDist;
+          this.x -= (dx / dist) * force * 1.5;
+          this.y -= (dy / dist) * force * 1.5;
+        }
+      }
+    }
+
+    const particles = Array.from({ length: 120 }, () => new DustParticle());
+    let mouseX = -1000;
+    let mouseY = -1000;
+
+    window.addEventListener("mousemove", (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    function animateDust() {
+      dustCtx.clearRect(0, 0, width, height);
+
+      // Deep, rich radial dark background
+      const radGrad = dustCtx.createRadialGradient(
+        width / 2, height / 2, 100,
+        width / 2, height / 2, Math.max(width, height) * 0.7
+      );
+      radGrad.addColorStop(0, "#0d0d11");
+      radGrad.addColorStop(0.5, "#090a0c");
+      radGrad.addColorStop(1, "#050608");
+      dustCtx.fillStyle = radGrad;
+      dustCtx.fillRect(0, 0, width, height);
+
+      // Delicate clinical overlay medical grid lines
+      dustCtx.strokeStyle = "rgba(125, 140, 97, 0.02)";
+      dustCtx.lineWidth = 1;
+      const step = 80;
+      for (let x = 0; x < width; x += step) {
+        dustCtx.beginPath();
+        dustCtx.moveTo(x, 0);
+        dustCtx.lineTo(x, height);
+        dustCtx.stroke();
+      }
+      for (let y = 0; y < height; y += step) {
+        dustCtx.beginPath();
+        dustCtx.moveTo(0, y);
+        dustCtx.lineTo(width, y);
+        dustCtx.stroke();
+      }
+
+      particles.forEach((p) => {
+        p.update(mouseX, mouseY);
+        p.draw();
+      });
+
+      requestAnimationFrame(animateDust);
+    }
+    animateDust();
+
+
+    // ==========================================
+    // 2. 3D ANATOMICAL HOLO SPHERE (Scene 1 Centerpiece)
+    // ==========================================
+    const holoCanvas = document.getElementById("holo-canvas");
+    const holoCtx = holoCanvas.getContext("2d");
+    const holoWidth = (holoCanvas.width = 300);
+    const holoHeight = (holoCanvas.height = 300);
+    const cX = holoWidth / 2;
+    const cY = holoHeight / 2;
+
+    const points = [];
+    const layers = 5;
+    const pointsPerLayer = 15;
+
+    for (let l = 0; l < layers; l++) {
+      const r = 55 + l * 12;
+      const phi = (l / layers) * Math.PI;
+      for (let p = 0; p < pointsPerLayer; p++) {
+        const theta = (p / pointsPerLayer) * Math.PI * 2;
+        const jitter = (Math.random() - 0.5) * 8;
+        const x = (r + jitter) * Math.sin(phi) * Math.cos(theta);
+        const y = (r + jitter) * Math.cos(phi);
+        const z = (r + jitter) * Math.sin(phi) * Math.sin(theta);
+        points.push({ x, y, z, origX: x, origY: y, origZ: z });
+      }
+    }
+
+    let aX = 0.003;
+    let aY = 0.005;
+    let aZ = 0.002;
+
+    function rotX(pt, a) {
+      const cos = Math.cos(a), sin = Math.sin(a);
+      const y1 = pt.y * cos - pt.z * sin;
+      const z1 = pt.z * cos + pt.y * sin;
+      pt.y = y1; pt.z = z1;
+    }
+    function rotY(pt, a) {
+      const cos = Math.cos(a), sin = Math.sin(a);
+      const x1 = pt.x * cos - pt.z * sin;
+      const z1 = pt.z * cos + pt.x * sin;
+      pt.x = x1; pt.z = z1;
+    }
+    function rotZ(pt, a) {
+      const cos = Math.cos(a), sin = Math.sin(a);
+      const x1 = pt.x * cos - pt.y * sin;
+      const y1 = pt.y * cos + pt.x * sin;
+      pt.x = x1; pt.y = y1;
+    }
+
+    let waveTime = 0;
+
+    function animateHolo() {
+      holoCtx.clearRect(0, 0, holoWidth, holoHeight);
+      waveTime += 0.03;
+
+      // Draw projected orbit lines
+      holoCtx.strokeStyle = "rgba(125, 140, 97, 0.05)";
+      holoCtx.lineWidth = 1;
+      holoCtx.beginPath();
+      holoCtx.arc(cX, cY, 85, 0, Math.PI * 2);
+      holoCtx.stroke();
+
+      const projected = [];
+      const fov = 350;
+
+      points.forEach((pt) => {
+        rotX(pt, aX);
+        rotY(pt, aY);
+        rotZ(pt, aZ);
+
+        const wave = Math.sin(waveTime + (pt.origX + pt.origY) * 0.01) * 3;
+        const currX = pt.x * (1 + wave * 0.015);
+        const currY = pt.y * (1 + wave * 0.015);
+        const currZ = pt.z * (1 + wave * 0.015);
+
+        const sc = fov / (fov + currZ);
+        const pX = currX * sc + cX;
+        const pY = currY * sc + cY;
+        const sz = Math.max(1, (sc * 2.2) + (Math.sin(waveTime * 2.5) * 0.4));
+
+        projected.push({ x: pX, y: pY, z: currZ, size: sz });
+      });
+
+      // Web synapse connects
+      holoCtx.lineWidth = 0.5;
+      const maxD = 45;
+      for (let i = 0; i < projected.length; i++) {
+        const p1 = projected[i];
+        const r1 = points[i];
+        for (let j = i + 1; j < projected.length; j++) {
+          const p2 = projected[j];
+          const r2 = points[j];
+          const dist3 = Math.hypot(r1.x - r2.x, r1.y - r2.y, r1.z - r2.z);
+          if (dist3 < maxD) {
+            const alpha = Math.max(0.02, (1 - dist3 / maxD) * (0.3 - (p1.z + p2.z) * 0.0015));
+            holoCtx.strokeStyle = `rgba(125, 140, 97, ${alpha})`;
+            holoCtx.beginPath();
+            holoCtx.moveTo(p1.x, p1.y);
+            holoCtx.lineTo(p2.x, p2.y);
+            holoCtx.stroke();
+          }
+        }
+      }
+
+      // Draw beautiful node points with double-pass high contrast glows
+      projected.forEach((p) => {
+        const aFactor = Math.max(0.1, 0.6 - p.z * 0.0025);
+        
+        holoCtx.fillStyle = `rgba(250, 249, 246, ${aFactor})`;
+        holoCtx.beginPath();
+        holoCtx.arc(p.x, p.y, p.size * 0.6, 0, Math.PI * 2);
+        holoCtx.fill();
+
+        holoCtx.fillStyle = `rgba(125, 140, 97, ${aFactor * 0.45})`;
+        holoCtx.beginPath();
+        holoCtx.arc(p.x, p.y, p.size * 1.8, 0, Math.PI * 2);
+        holoCtx.fill();
+      });
+
+      // Holographic sweeping scanner bar
+      const barY = cY + Math.sin(waveTime * 0.8) * 85;
+      holoCtx.strokeStyle = "rgba(125, 140, 97, 0.15)";
+      holoCtx.lineWidth = 1.5;
+      holoCtx.beginPath();
+      holoCtx.moveTo(cX - 90, barY);
+      holoCtx.lineTo(cX + 90, barY);
+      holoCtx.stroke();
+
+      holoCtx.fillStyle = "rgba(125, 140, 97, 0.5)";
+      holoCtx.beginPath();
+      holoCtx.arc(cX - 90, barY, 2, 0, Math.PI * 2);
+      holoCtx.arc(cX + 90, barY, 2, 0, Math.PI * 2);
+      holoCtx.fill();
+
+      requestAnimationFrame(animateHolo);
+    }
+    animateHolo();
+
+
+    // ==========================================
+    // 3. PHYSICAL CURSOR & BLUR Halo FOLLOWERS (GSAP Spring)
+    // ==========================================
+    const cursorOuter = document.getElementById("custom-cursor-outer");
+    const cursorDot = document.getElementById("custom-cursor-dot");
+    const ambientGlow = document.getElementById("ambient-glow");
+
+    let mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    
+    // Quick fade-in once mouse moves
+    window.addEventListener("mousemove", (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      
+      gsap.to([cursorOuter, cursorDot], { opacity: 1, duration: 0.5 });
+    });
+
+    // Outer cursor lags dynamically using GSAP quickTo
+    const xToOuter = gsap.quickTo(cursorOuter, "x", { duration: 0.35, ease: "power2.out" });
+    const yToOuter = gsap.quickTo(cursorOuter, "y", { duration: 0.35, ease: "power2.out" });
+
+    // Inner pointer follows almost instantly
+    const xToDot = gsap.quickTo(cursorDot, "x", { duration: 0.08, ease: "power3.out" });
+    const yToDot = gsap.quickTo(cursorDot, "y", { duration: 0.08, ease: "power3.out" });
+
+    // Ambient background halo follows with deliberate luxury lag
+    const xToGlow = gsap.quickTo(ambientGlow, "x", { duration: 1.1, ease: "power1.out" });
+    const yToGlow = gsap.quickTo(ambientGlow, "y", { duration: 1.1, ease: "power1.out" });
+
+    gsap.ticker.add(() => {
+      xToOuter(mouse.x);
+      yToOuter(mouse.y);
+      
+      xToDot(mouse.x);
+      yToDot(mouse.y);
+
+      xToGlow(mouse.x);
+      yToGlow(mouse.y);
+    });
+
+    // Detect interactive hovers using delegation to expand/contract cursor
+    document.addEventListener("mouseover", (e) => {
+      const target = e.target;
+      if (!target) return;
+
+      const isInteractive = target.closest("button, a, [role='button']") || target.classList.contains("cursor-pointer");
+      const isCard = target.closest(".island-card");
+
+      if (isInteractive) {
+        gsap.to(cursorOuter, { scale: 1.8, borderColor: "#7D8C61", backgroundColor: "rgba(125, 140, 97, 0.15)", duration: 0.3 });
+        gsap.to(cursorDot, { scale: 0.4, duration: 0.3 });
+      } else if (isCard) {
+        gsap.to(cursorOuter, { scale: 2.2, borderColor: "#FAF9F6", backgroundColor: "rgba(250, 249, 246, 0.05)", duration: 0.3 });
+        gsap.to(cursorDot, { scale: 1.2, backgroundColor: "#FAF9F6", duration: 0.3 });
+      } else {
+        gsap.to(cursorOuter, { scale: 1, borderColor: "rgba(125, 140, 97, 0.4)", backgroundColor: "transparent", duration: 0.3 });
+        gsap.to(cursorDot, { scale: 1, backgroundColor: "#7D8C61", duration: 0.3 });
+      }
+    });
+
+    document.addEventListener("mouseleave", () => {
+      gsap.to([cursorOuter, cursorDot], { opacity: 0, duration: 0.5 });
+    });
+
+
+    // ==========================================
+    // 4. INERTIAL 3D MOUSE PARALLAX TILT ENGINE
+    // ==========================================
+    const welcomePanel = document.getElementById("welcome-panel");
+
+    document.addEventListener("mousemove", (e) => {
+      const rect = welcomePanel.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      // Project coordinates relative to center of welcome panel
+      const cx = rect.left + w / 2;
+      const cy = rect.top + h / 2;
+
+      // Normalize distance from center (-0.5 to 0.5)
+      const dx = (e.clientX - cx) / w;
+      const dy = (e.clientY - cy) / h;
+
+      // Limit max rotation to 15 degrees for balanced physical motion
+      const rotateX = -dy * 15;
+      const rotateY = dx * 15;
+
+      gsap.to(welcomePanel, {
+        rotateX: rotateX,
+        rotateY: rotateY,
+        duration: 0.7,
+        ease: "power2.out"
+      });
+    });
+
+    // Reset coordinates on leave window/container boundary
+    document.addEventListener("mouseleave", () => {
+      gsap.to(welcomePanel, {
+        rotateX: 0,
+        rotateY: 0,
+        duration: 1.2,
+        ease: "elastic.out(1, 0.6)"
+      });
+    });
+
+
+    // ==========================================
+    // 5. MAGNETIC CTAs COUPLING (Spring pull)
+    // ==========================================
+    const magneticBtn = document.getElementById("magnetic-auth-btn");
+    
+    document.addEventListener("mousemove", (e) => {
+      const rect = magneticBtn.getBoundingClientRect();
+      const mX = rect.left + rect.width / 2;
+      const mY = rect.top + rect.height / 2;
+
+      // Distance from pointer to button center
+      const d = Math.hypot(e.clientX - mX, e.clientY - mY);
+      const pullThreshold = 75; // Trigger distance
+
+      if (d < pullThreshold) {
+        // Calculate raw relative pulling offset
+        const pullX = (e.clientX - mX) * 0.45;
+        const pullY = (e.clientY - mY) * 0.45;
+
+        gsap.to(magneticBtn, {
+          x: pullX,
+          y: pullY,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      } else {
+        // Restore standard coordinates
+        gsap.to(magneticBtn, {
+          x: 0,
+          y: 0,
+          duration: 0.6,
+          ease: "elastic.out(1, 0.4)"
+        });
+      }
+    });
+
+
+    // ==========================================
+    // 6. STAGGERED ENTRANCE CINEMATIC TIMELINE
+    // ==========================================
+    window.addEventListener("DOMContentLoaded", () => {
+      // Create characters splitter for Title Text
+      const welcomeTitle = document.getElementById("welcome-title");
+      const titleText = welcomeTitle.innerText;
+      welcomeTitle.innerHTML = "";
+      
+      titleText.split("").forEach((char) => {
+        const span = document.createElement("span");
+        span.textContent = char === " " ? "\u00A0" : char;
+        span.className = "inline-block opacity-0 translate-y-4 filter blur-sm";
+        welcomeTitle.appendChild(span);
+      });
+
+      // Core GSAP loader timeline
+      const tl = gsap.timeline();
+      
+      // PROJECTOR & Projector animation
+      tl.from("#welcome-panel", {
+        scale: 0.92,
+        y: 40,
+        opacity: 0,
+        duration: 1.4,
+        ease: "power3.out"
+      });
+
+      // Split-text reveal character-by-character
+      tl.to("#welcome-title span", {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        stagger: 0.03,
+        duration: 0.8,
+        ease: "power3.out"
+      }, "-=0.8");
+
+      tl.to("#welcome-subtitle", {
+        opacity: 1,
+        y: 0,
+        duration: 1.2,
+        ease: "power2.out"
+      }, "-=0.4");
+
+      tl.to("#welcome-cta", {
+        opacity: 1,
+        y: 0,
+        duration: 1,
+        ease: "back.out(1.5)"
+      }, "-=0.8");
+    });
+
+
+    // ==========================================
+    // 7. BIOMETRIC SCANNING FLUID MECHANICS
+    // ==========================================
+    const authBtn = document.getElementById("magnetic-auth-btn");
+    const scanFeedback = document.getElementById("biometric-scanner-feedback");
+    const btnText = document.getElementById("btn-text");
+    const scanPercentText = document.getElementById("scan-percentage");
+    const scanBar = document.getElementById("scan-progress-bar");
+    const scanLaser = document.getElementById("scan-laser");
+
+    let isScanning = false;
+
+    authBtn.addEventListener("click", () => {
+      if (isScanning) return;
+      isScanning = true;
+
+      // Transition Button to Processing State
+      gsap.to(authBtn, {
+        scale: 0.98,
+        opacity: 0,
+        y: -10,
+        duration: 0.4,
+        onComplete: () => {
+          authBtn.style.display = "none";
+          scanFeedback.classList.remove("hidden");
+          gsap.to(scanFeedback, { opacity: 1, y: 0, duration: 0.5 });
+          runScanningSequence();
+        }
+      });
+    });
+
+    function runScanningSequence() {
+      let currentProgress = 0;
+      
+      const interval = setInterval(() => {
+        currentProgress += Math.floor(Math.random() * 8) + 4;
+        
+        if (currentProgress >= 100) {
+          currentProgress = 100;
+          clearInterval(interval);
+          
+          scanPercentText.innerText = "SUCCESS";
+          scanBar.style.width = "100%";
+          scanLaser.style.left = "100%";
+          
+          // Flash scan border completely green
+          gsap.to(scanFeedback, { 
+            borderColor: "#7D8C61", 
+            backgroundColor: "rgba(125, 140, 97, 0.15)",
+            boxShadow: "0 0 25px rgba(125, 140, 97, 0.4)",
+            duration: 0.3 
+          });
+
+          // Trigger automated auto scroll down into Scene 2
+          setTimeout(() => {
+            gsap.to(window, {
+              scrollTo: window.innerHeight * 0.9,
+              duration: 2.2,
+              ease: "power3.inOut"
+            });
+          }, 600);
+        } else {
+          scanPercentText.innerText = `${currentProgress}%`;
+          scanBar.style.width = `${currentProgress}%`;
+          scanLaser.style.left = `${currentProgress}%`;
+        }
+      }, 70);
+    }
+
+    // Bypass shortcut
+    document.getElementById("bypass-btn").addEventListener("click", () => {
+      gsap.to(window, {
+        scrollTo: window.innerHeight * 0.9,
+        duration: 1.8,
+        ease: "power3.inOut"
+      });
+    });
+
+
+    // ==========================================
+    // 8. SCROLL-DRIVEN ARCHITECTURE (ScrollTrigger + Lenis)
+    // ==========================================
+    
+    // Register GSAP ScrollToPlugin (manually simulated if CDN missing, but we've got full power)
+    // Let's configure custom scrollTo if CDN omitted
+    if (!gsap.plugins || !gsap.plugins.scrollTo) {
+      // Setup lightweight helper in case
+      gsap.registerPlugin({
+        name: "scrollTo",
+        init(target, val) {
+          this.target = window;
+          this.val = val;
+        },
+        render(ratio, data) {
+          window.scrollTo(0, data.val * ratio);
+        }
+      });
+    }
+
+    // Initialize Lenis
+    const lenis = new Lenis({
+      duration: 1.5,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // premium fast-to-slow exponential curve
+      smoothWheel: true,
+      infinite: false
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    // Coordinate scrolling with GSAP ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update);
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    // GSAP ScrollTrigger timeline linking scrolling to visual scene transformations
+    const mainScrollTimeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: "body",
+        start: "top top",
+        end: "60% top",
+        scrub: 1.1, // Smooth interpolation matching scroll wheel
+        invalidateOnRefresh: true
+      }
+    });
+
+    // Scene 1 EXITS: Card scales up, fades out, and pivots away
+    mainScrollTimeline.to("#welcome-panel", {
+      scale: 1.25,
+      opacity: 0,
+      y: -80,
+      rotateX: 12,
+      duration: 1,
+      ease: "power2.inOut"
+    });
+
+    // Scene 2 ENTERS: Floating division cards fade in & stagger z-axis depth coordinates
+    const sceneIslands = document.getElementById("scene-islands");
+    
+    // Quick visibility toggle handled safely
+    ScrollTrigger.create({
+      trigger: "body",
+      start: "20% top",
+      onEnter: () => {
+        sceneIslands.classList.remove("hidden");
+        gsap.to(sceneIslands, { opacity: 1, duration: 0.5 });
+      },
+      onLeaveBack: () => {
+        gsap.to(sceneIslands, { opacity: 0, duration: 0.5, onComplete: () => sceneIslands.classList.add("hidden") });
+      }
+    });
+
+    // Assembly Entrance staggered animations
+    mainScrollTimeline.from(".island-card", {
+      opacity: 0,
+      stagger: 0.15,
+      scale: 0.82,
+      y: 100,
+      rotateX: -10,
+      duration: 1.2,
+      ease: "back.out(1.2)"
+    }, "-=0.35");
+
+
+    // ==========================================
+    // 9. DYNAMIC CARD PARALLAX INTERACTION (Scene 2)
+    // ==========================================
+    const cards = document.querySelectorAll(".island-card");
+
+    cards.forEach((card) => {
+      card.addEventListener("mousemove", (e) => {
+        const rect = card.getBoundingClientRect();
+        const w = rect.width;
+        const h = rect.height;
+
+        // Coordinates from center of card
+        const cx = rect.left + w / 2;
+        const cy = rect.top + h / 2;
+
+        const dx = (e.clientX - cx) / w;
+        const dy = (e.clientY - cy) / h;
+
+        // Mild responsive pivot
+        const rX = -dy * 12;
+        const rY = dx * 12;
+
+        // Dynamic depth extrusion (Push details further)
+        gsap.to(card, {
+          rotateX: rX,
+          rotateY: rY,
+          scale: 1.03,
+          borderColor: "#7D8C61",
+          boxShadow: "0 15px 45px rgba(125, 140, 97, 0.25)",
+          duration: 0.4,
+          ease: "power2.out"
+        });
+
+        // Extra layer of parallax on internal icons
+        const icon = card.querySelector(".p-3.5");
+        if (icon) {
+          gsap.to(icon, {
+            x: dx * 15,
+            y: dy * 15,
+            duration: 0.4,
+            ease: "power2.out"
+          });
+        }
+      });
+
+      card.addEventListener("mouseleave", () => {
+        gsap.to(card, {
+          rotateX: 0,
+          rotateY: 0,
+          scale: 1,
+          borderColor: "rgba(125, 140, 97, 0.25)",
+          boxShadow: "0 0 40px rgba(125, 140, 97, 0.15)",
+          duration: 0.8,
+          ease: "elastic.out(1, 0.5)"
+        });
+
+        const icon = card.querySelector(".p-3.5");
+        if (icon) {
+          gsap.to(icon, {
+            x: 0,
+            y: 0,
+            duration: 0.6,
+            ease: "elastic.out(1, 0.5)"
+          });
+        }
+      });
+    });
+
+  </script>
+</body>
+</html>

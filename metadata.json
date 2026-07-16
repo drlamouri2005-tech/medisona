@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Remix: Copy of Copy of Medical Student Learning Platform",
+  "description": "A dynamic, full-stack learning platform for medical students with study resources, curriculum paths, customizable mock exams, personal study notes, error signaling, and an AI-powered document-explaining study assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
