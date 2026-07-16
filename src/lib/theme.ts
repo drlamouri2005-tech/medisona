@@ -21,17 +21,17 @@ export interface Theme {
 export const PRESET_THEMES: { [key: string]: Theme } = {
   light: {
     id: "light",
-    name: "Obsidian Neon (Premium Dark)",
-    isDark: true,
+    name: "Medisona Light",
+    isDark: false,
     variables: {
-      "--color-bg": "#070709",
-      "--color-surface": "#121215",
-      "--color-surface-hover": "#1A1A22",
-      "--color-border": "rgba(255, 255, 255, 0.08)",
-      "--color-text": "#FAF9F6",
-      "--color-text-muted": "#8C929D",
-      "--color-accent": "#10B981",
-      "--color-accent-hover": "#34D399",
+      "--color-bg": "#F0F7F4",
+      "--color-surface": "#FFFFFF",
+      "--color-surface-hover": "#F7FBF9",
+      "--color-border": "rgba(112, 171, 175, 0.2)",
+      "--color-text": "#32292F",
+      "--color-text-muted": "#7A756D",
+      "--color-accent": "#70ABAF",
+      "--color-accent-hover": "#5C9498",
     },
   },
   dark: {

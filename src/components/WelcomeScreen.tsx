@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { AcademicYear } from "../types";
 import { useStudent } from "./StudentContext";
 import { ALGERIAN_CURRICULUM, YearConfig } from "../data/curriculum";
+import { getSavedTheme, applyTheme, PRESET_THEMES } from "../lib/theme";
 import { TypewriterLaser } from "./TypewriterLaser";
 
 interface WelcomeScreenProps {
@@ -44,7 +45,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
   // Theme control state
   const [theme, setTheme] = useState<"dark" | "light">(() => {
-    return (localStorage.getItem("med_welcome_theme") as "dark" | "light") || "dark";
+    return getSavedTheme().isDark ? "dark" : "light";
   });
   const themeRef = useRef(theme);
   useEffect(() => {
@@ -902,7 +903,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           onClick={() => {
             const nextTheme = theme === "dark" ? "light" : "dark";
             setTheme(nextTheme);
-            localStorage.setItem("med_welcome_theme", nextTheme);
+            const targetPreset = nextTheme === "dark" ? PRESET_THEMES.dark : PRESET_THEMES.light;
+            applyTheme(targetPreset);
+            // Also dispatch event so App.tsx can sync
+            window.dispatchEvent(new Event('storage'));
           }}
           className={`relative w-16 h-8 rounded-full border transition-all duration-500 cursor-pointer shadow-lg flex items-center p-1 overflow-hidden focus:outline-none ${
             theme === "dark"

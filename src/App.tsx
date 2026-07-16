@@ -61,6 +61,7 @@ function MainAppLayout() {
   } = useStudent();
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [navCollapsed, setNavCollapsed] = useState<boolean>(true);
 
   // Deep Night Dark Mode state
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -146,6 +147,12 @@ function MainAppLayout() {
     const saved = getSavedTheme();
     applyTheme(saved);
     setIsDarkMode(saved.isDark);
+    
+    const handleStorage = () => {
+      setIsDarkMode(getSavedTheme().isDark);
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   useEffect(() => {
@@ -345,17 +352,38 @@ function MainAppLayout() {
         <MolecularBackdrop />
 
         {/* Theme Toggle */}
-        <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          className={`absolute top-6 right-6 z-50 p-2.5 rounded-full backdrop-blur-md border transition-all duration-300 ${
-            isDarkMode 
-              ? "bg-[#0a0a0e]/95 border-[#7D8C61]/30 text-[#7D8C61] hover:bg-[#7D8C61]/10 hover:border-[#7D8C61]/60" 
-              : "bg-[#F0F7F4] border-[#70ABAF]/30 text-[#70ABAF] hover:bg-[#70ABAF]/10 hover:border-[#70ABAF]/60"
-          }`}
-          aria-label="Toggle theme"
-        >
-          {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-        </button>
+        <div className="absolute top-6 right-6 z-50">
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`relative w-16 h-8 rounded-full border transition-all duration-500 cursor-pointer shadow-lg flex items-center p-1 overflow-hidden focus:outline-none ${
+              isDarkMode
+                ? "bg-[#0d0d11]/80 border-[#7D8C61]/35 hover:border-[#7D8C61]/70 hover:shadow-[0_0_15px_rgba(125,140,97,0.2)]"
+                : "bg-[#FFFFFF]/90 border-[#70ABAF]/50 hover:border-[#70ABAF] hover:shadow-[0_4px_12px_rgba(112,171,175,0.25)]"
+            }`}
+            aria-label="Toggle theme"
+          >
+            {/* Slider Background Track Details */}
+            <div className="absolute inset-0 flex justify-between px-2.5 items-center pointer-events-none opacity-45 font-mono text-[8px] font-extrabold">
+              <span className={!isDarkMode ? "text-[#32292F]" : "text-[#7D8C61]"}>D</span>
+              <span className={!isDarkMode ? "text-[#70ABAF]" : "text-[#FAF9F6]"}>L</span>
+            </div>
+
+            {/* Animated Knob */}
+            <div
+              className={`w-6 h-6 rounded-full flex items-center justify-center transform transition-all duration-500 shadow-md ${
+                isDarkMode
+                  ? "translate-x-0 bg-[#7D8C61] text-[#0d0d11] rotate-0"
+                  : "translate-x-8 bg-[#70ABAF] text-[#F0F7F4] rotate-180"
+              }`}
+            >
+              {isDarkMode ? (
+                <Moon className="w-3.5 h-3.5" />
+              ) : (
+                <Sun className="w-3.5 h-3.5" />
+              )}
+            </div>
+          </button>
+        </div>
 
         {/* Cinematic glow in backgrounds */}
         <div className={`absolute top-1/4 left-1/4 w-[35rem] h-[35rem] rounded-full blur-[120px] pointer-events-none ${isDarkMode ? "bg-[#7D8C61]/10" : "bg-[#70ABAF]/15"}`}></div>
@@ -757,11 +785,11 @@ function MainAppLayout() {
       <AnimatePresence>
         {(mobileMenuOpen || !activeSession) && (
           <nav
-            className={`fixed inset-y-0 left-0 lg:static z-40 w-72 bg-[#070709]/95 lg:bg-transparent border-r border-white/5 lg:border-r-0 p-6 flex flex-col justify-between shrink-0 transform transition-transform duration-300 lg:transform-none backdrop-blur-md lg:backdrop-blur-none ${
+            className={`fixed inset-y-0 left-0 lg:static z-40 ${navCollapsed ? 'w-24 px-4' : 'w-72 px-6'} py-6 bg-[#070709]/95 lg:bg-transparent border-r border-white/5 lg:border-r-0 flex flex-col justify-between shrink-0 transform transition-all duration-300 lg:transform-none backdrop-blur-md lg:backdrop-blur-none ${
               mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
             } ${activeSession ? "hidden lg:hidden" : "flex"}`}
           >
-            <div className="space-y-8 relative z-10">
+            <div className="space-y-8 relative z-10 w-full">
               {/* Logo (Desktop Only) */}
               <Magnetic strength={0.25} range={65}>
                 <div 
@@ -769,12 +797,12 @@ function MainAppLayout() {
                     setActiveTab("dashboard");
                     setActiveSession(null);
                   }}
-                  className="hidden lg:flex items-center space-x-3 pb-2 border-b border-white/10 group cursor-pointer"
+                  className={`hidden lg:flex items-center pb-2 border-b border-white/10 group cursor-pointer ${navCollapsed ? 'justify-center' : 'space-x-3'}`}
                 >
-                  <div className="w-10 h-10 bg-emerald-500 text-black rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-all duration-300 group-hover:scale-105 border border-emerald-400 font-bold">
+                  <div className="w-10 h-10 shrink-0 bg-emerald-500 text-black rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-all duration-300 group-hover:scale-105 border border-emerald-400 font-bold">
                     <Stethoscope className="w-5.5 h-5.5 stethoscope-rotate" />
                   </div>
-                  <div className="text-left">
+                  <div className={`text-left ${navCollapsed ? 'hidden' : 'block'}`}>
                     <h1 className="font-serif font-bold text-white tracking-tight text-lg">medisona</h1>
                     <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest mt-0.5 block font-bold">Medical Board Prep</span>
                   </div>
@@ -782,7 +810,7 @@ function MainAppLayout() {
               </Magnetic>
 
               {/* Navigation Links */}
-              <div className="space-y-1">
+              <div className="space-y-1 w-full">
                 {[
                   { id: "dashboard", label: "Dashboard", icon: Stethoscope },
                   { id: "curriculum", label: "Curriculum Paths", icon: BookOpen },
@@ -799,21 +827,22 @@ function MainAppLayout() {
                     <button
                       key={item.id}
                       data-magnetic="true"
+                      title={navCollapsed ? item.label : undefined}
                       onClick={() => {
                         setActiveTab(item.id);
                         setMobileMenuOpen(false);
                       }}
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer nav-btn-transition group ${
+                      className={`w-full flex items-center ${navCollapsed ? 'justify-center' : 'justify-between'} px-4 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer nav-btn-transition group ${
                         isActive
                           ? "bg-emerald-500 text-black shadow-md shadow-emerald-500/10 border border-emerald-400"
                           : "text-gray-400 hover:bg-white/5 hover:text-white"
                       }`}
                     >
-                      <div className="flex items-center space-x-3.5">
+                      <div className={`flex items-center ${navCollapsed ? 'justify-center' : 'space-x-3.5'}`}>
                         <Icon className={`w-4 h-4 shrink-0 ${item.id === "dashboard" ? "stethoscope-rotate" : "medical-icon-rotate"}`} />
-                        <span className="font-mono">{item.label}</span>
+                        {!navCollapsed && <span className="font-mono">{item.label}</span>}
                       </div>
-                      {item.badge && (
+                      {!navCollapsed && item.badge && (
                         <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono font-bold leading-none ${
                           isActive ? "bg-black text-emerald-400" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                         }`}>
@@ -827,42 +856,59 @@ function MainAppLayout() {
                 {student.isAdmin && (
                   <button
                     data-magnetic="true"
+                    title={navCollapsed ? "Admin Portal" : undefined}
                     onClick={() => {
                       setActiveTab("admin");
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center space-x-3.5 px-4 py-3 rounded-xl text-xs font-mono font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                    className={`w-full flex items-center ${navCollapsed ? 'justify-center' : 'space-x-3.5'} px-4 py-3 rounded-xl text-xs font-mono font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
                       activeTab === "admin"
                         ? "bg-emerald-500 text-black shadow-md shadow-emerald-500/10 border border-emerald-400"
                         : "text-gray-400 hover:bg-white/5 hover:text-white"
                     }`}
                   >
                     <ShieldAlert className="w-4 h-4 shrink-0" />
-                    <span>Admin Portal</span>
+                    {!navCollapsed && <span>Admin Portal</span>}
                   </button>
                 )}
               </div>
             </div>
 
             {/* Bottom Student Context Profile Info */}
-            <div className="space-y-4 pt-6 border-t border-white/10 relative z-10">
-              <div className="flex items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                <div className="w-9 h-9 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 border border-emerald-500/20">
+            <div className="space-y-4 pt-6 border-t border-white/10 relative z-10 w-full flex flex-col">
+              {!navCollapsed ? (
+                <div className="flex items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/5">
+                  <div className="w-9 h-9 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 border border-emerald-500/20">
+                    {student.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="overflow-hidden text-left">
+                    <p className="text-xs font-serif font-bold text-white truncate leading-tight">{student.name}</p>
+                    <p className="text-[10px] font-mono text-gray-400 uppercase tracking-wider mt-0.5 truncate font-bold">{student.academicYear}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-9 h-9 mx-auto bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 border border-emerald-500/20" title={student.name}>
                   {student.name.charAt(0).toUpperCase()}
                 </div>
-                <div className="overflow-hidden text-left">
-                  <p className="text-xs font-serif font-bold text-white truncate leading-tight">{student.name}</p>
-                  <p className="text-[10px] font-mono text-gray-400 uppercase tracking-wider mt-0.5 truncate font-bold">{student.academicYear}</p>
-                </div>
-              </div>
+              )}
 
               <button
                 data-magnetic="true"
                 onClick={signOutStudent}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-rose-500/10 text-gray-400 hover:text-rose-400 border border-white/5 hover:border-rose-500/20 rounded-xl text-[10px] font-mono uppercase tracking-wider font-bold transition-all duration-200 cursor-pointer"
+                title={navCollapsed ? "Sign Out" : undefined}
+                className={`w-full flex items-center ${navCollapsed ? 'justify-center' : 'justify-center gap-2'} py-3 bg-white/5 hover:bg-rose-500/10 text-gray-400 hover:text-rose-400 border border-white/5 hover:border-rose-500/20 rounded-xl text-[10px] font-mono uppercase tracking-wider font-bold transition-all duration-200 cursor-pointer`}
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Sign Out Account</span>
+                <LogOut className="w-3.5 h-3.5 shrink-0" />
+                {!navCollapsed && <span>Sign Out</span>}
+              </button>
+
+              <button
+                onClick={() => setNavCollapsed(!navCollapsed)}
+                title={navCollapsed ? "Menu" : undefined}
+                className={`w-full flex items-center ${navCollapsed ? 'justify-center' : 'justify-center gap-2'} py-3 mt-2 bg-white/5 hover:bg-emerald-500/10 text-gray-400 hover:text-emerald-400 border border-white/5 hover:border-emerald-500/20 rounded-xl text-[10px] font-mono uppercase tracking-wider font-bold transition-all duration-200 cursor-pointer`}
+              >
+                <Menu className="w-3.5 h-3.5 shrink-0" />
+                {!navCollapsed && <span>Menu</span>}
               </button>
             </div>
           </nav>
