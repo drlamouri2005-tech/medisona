@@ -45,6 +45,7 @@ import { CustomCursor, Magnetic, TiltCard } from "./components/EliteInteractions
 import { MolecularBackdrop } from "./components/MolecularBackdrop";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { TypewriterLaser } from "./components/TypewriterLaser";
+import { DoctorsScene, AuthFieldFocus } from "./components/DoctorsScene";
 
 
 function MainAppLayout() {
@@ -173,6 +174,8 @@ function MainAppLayout() {
   const [authError, setAuthError] = useState<string>("");
   const [authLoading, setAuthLoading] = useState<boolean>(false);
   const [copiedDomain, setCopiedDomain] = useState<boolean>(false);
+  // Which auth field is focused — drives the 3D doctors' behaviour on the left panel
+  const [authFocusField, setAuthFocusField] = useState<AuthFieldFocus>("none");
 
   // Active QCM Session State (when student is answering questions)
   const [activeSession, setActiveSession] = useState<{
@@ -348,7 +351,7 @@ function MainAppLayout() {
     };
 
     return (
-      <div className={`min-h-screen flex items-center justify-center relative overflow-hidden ${isDarkMode ? "bg-[#040507]" : "bg-[#F0F7F4]"}`} id="onboarding-portal">
+      <div className={`min-h-screen relative overflow-x-hidden ${isDarkMode ? "bg-[#040507]" : "bg-[#F0F7F4]"}`} id="onboarding-portal">
         <MolecularBackdrop />
 
         {/* Theme Toggle */}
@@ -388,6 +391,71 @@ function MainAppLayout() {
         {/* Cinematic glow in backgrounds */}
         <div className={`absolute top-1/4 left-1/4 w-[35rem] h-[35rem] rounded-full blur-[120px] pointer-events-none ${isDarkMode ? "bg-[#7D8C61]/10" : "bg-[#70ABAF]/15"}`}></div>
         <div className={`absolute bottom-1/4 right-1/4 w-[35rem] h-[35rem] rounded-full blur-[140px] pointer-events-none ${isDarkMode ? "bg-[#81A1C1]/5" : "bg-[#99E1D9]/20"}`}></div>
+
+        {/* Split layout: 3D medical crew on the left, auth card on the right */}
+        <div className="relative z-10 flex min-h-screen flex-col lg:flex-row">
+
+          {/* LEFT — Interactive 3D doctors panel */}
+          <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] lg:h-screen lg:sticky lg:top-0 flex-col px-10 xl:px-14 py-10 relative overflow-hidden">
+            {/* Panel ambient glows */}
+            <div className={`absolute -top-24 -left-24 w-[28rem] h-[28rem] rounded-full blur-[110px] pointer-events-none ${isDarkMode ? "bg-[#7D8C61]/12" : "bg-[#99E1D9]/30"}`}></div>
+            <div className={`absolute bottom-0 right-0 w-[24rem] h-[24rem] rounded-full blur-[120px] pointer-events-none ${isDarkMode ? "bg-[#00F5D4]/6" : "bg-[#70ABAF]/15"}`}></div>
+
+            {/* Panel brand header */}
+            <motion.div
+              initial={{ opacity: 0, y: -18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="relative z-10 flex items-center gap-3.5"
+            >
+              <div className={`w-11 h-11 rounded-2xl flex items-center justify-center border shadow-lg ${isDarkMode ? "bg-[#00F5D4]/10 text-[#00F5D4] border-[#00F5D4]/40 shadow-[0_0_20px_rgba(0,245,212,0.25)]" : "bg-[#70ABAF]/10 text-[#70ABAF] border-[#70ABAF]/40 shadow-[0_0_20px_rgba(112,171,175,0.25)]"}`}>
+                <Stethoscope className="w-5.5 h-5.5" />
+              </div>
+              <div className="text-left">
+                <p className={`font-serif font-bold text-lg leading-none ${isDarkMode ? "text-[#FAF9F6]" : "text-[#32292F]"}`}>medisona</p>
+                <p className={`text-[9px] font-mono uppercase tracking-[0.22em] font-bold mt-1 ${isDarkMode ? "text-[#8CA365]" : "text-[#70ABAF]"}`}>Care Crew On Duty</p>
+              </div>
+            </motion.div>
+
+            {/* The 3D crew itself */}
+            <div className="relative z-10 flex-1 min-h-0">
+              <div className="absolute inset-0">
+                <DoctorsScene focusedField={authFocusField} isDarkMode={isDarkMode} />
+              </div>
+            </div>
+
+            {/* Reactive caption that mirrors the crew's behaviour */}
+            <div className="relative z-10 min-h-[4.5rem] text-left">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={authFocusField === "password" ? "pw" : (authFocusField === "email" || authFocusField === "name") ? "typing" : "idle"}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.35 }}
+                  className="space-y-1.5"
+                >
+                  <p className={`font-serif font-bold text-xl ${isDarkMode ? "text-[#FAF9F6]" : "text-[#32292F]"}`}>
+                    {authFocusField === "password"
+                      ? "Privacy mode: engaged."
+                      : (authFocusField === "email" || authFocusField === "name")
+                        ? "They're reading along…"
+                        : "Meet your clinical crew."}
+                  </p>
+                  <p className={`text-xs font-mono leading-relaxed max-w-sm ${isDarkMode ? "text-[#8C929D]" : "text-[#7A756D]"}`}>
+                    {authFocusField === "password"
+                      ? "Hands over eyes and bodies turned — nobody's peeking at your password. Promise."
+                      : (authFocusField === "email" || authFocusField === "name")
+                        ? "The whole crew leans in to watch you type. No pressure."
+                        : "Three specialists on shift around the clock. Move your cursor — they never miss a thing."}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* RIGHT — Authentication card */}
+          <div className="flex-1 flex items-center justify-center px-4 sm:px-8 py-12 lg:py-8 relative">
 
         <motion.div
           initial={{ 
@@ -537,6 +605,8 @@ function MainAppLayout() {
                   required
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
+                  onFocus={() => setAuthFocusField("name")}
+                  onBlur={() => setAuthFocusField("none")}
                   placeholder="e.g. Dr. Jane Doe"
                   className={`w-full p-3.5 border rounded-xl transition text-sm ${
                     isDarkMode 
@@ -558,6 +628,8 @@ function MainAppLayout() {
                   required
                   value={authEmail}
                   onChange={(e) => setAuthEmail(e.target.value)}
+                  onFocus={() => setAuthFocusField("email")}
+                  onBlur={() => setAuthFocusField("none")}
                   placeholder="name@university.edu"
                   className={`w-full pl-11 p-3.5 border rounded-xl transition text-sm ${
                     isDarkMode 
@@ -580,6 +652,8 @@ function MainAppLayout() {
                   minLength={6}
                   value={authPassword}
                   onChange={(e) => setAuthPassword(e.target.value)}
+                  onFocus={() => setAuthFocusField("password")}
+                  onBlur={() => setAuthFocusField("none")}
                   placeholder="••••••••"
                   className={`w-full pl-11 p-3.5 border rounded-xl transition text-sm ${
                     isDarkMode 
@@ -648,6 +722,9 @@ function MainAppLayout() {
             </button>
           </div>
         </motion.div>
+
+          </div>
+        </div>
       </div>
     );
   }
